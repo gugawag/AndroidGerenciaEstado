@@ -12,10 +12,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,13 +27,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             GerenciaEstadoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column {
-                        ContaNumerosStatefull(
-                            modifier = Modifier.padding(innerPadding)
-                        )
-                        Conta(
-                            modifier = Modifier.padding(innerPadding)
-                        )
+                    // cria um Lazy de ContadorViewModel. Por isso usamos o by para delegar a criação do ViewModel
+                    val viewModel by viewModels<ContadorViewModel>()
+                    val contador by viewModel.contador.collectAsState()
+                    Column(Modifier.padding(innerPadding)) {
+                        ContaNumerosStateless(
+                            contador = contador,
+                            onIncreaseCount = { viewModel.incrementar() })
                     }
                 }
             }
@@ -43,28 +41,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable
-fun ContaNumerosStatefull(modifier: Modifier = Modifier) {
-    var contador by remember { mutableIntStateOf(0) }
-
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = "Contador Stateful: $contador",
-            modifier = modifier
-        )
-        Button(onClick = { contador++}) {
-            Text(text = "Clique aqui")
-        }
-    }
-}
-
 //Stateless
-@Composable
-fun Conta(modifier: Modifier = Modifier) {
-    var contador by remember { mutableIntStateOf(0) }
-    ContaNumerosStateless(contador = contador, onIncreaseCount = { contador++ }, modifier)
-}
-
 @Composable
 fun ContaNumerosStateless(contador: Int,
                           onIncreaseCount: () -> Unit,
@@ -86,9 +63,5 @@ fun ContaNumerosStateless(contador: Int,
 @Composable
 fun GreetingPreview() {
     GerenciaEstadoTheme {
-        Column {
-            ContaNumerosStatefull()
-            Conta()
-        }
     }
 }
